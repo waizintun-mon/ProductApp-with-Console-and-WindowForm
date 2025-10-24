@@ -48,6 +48,67 @@ public class ProductService
         
         
     }
+    //public async Task<ProductUpdateResponseModel> UpdateProduct(ProductUpdateRequestModel request)
+    //{
+    //    var json = JsonConvert.SerializeObject(request);
+    //    StringContent content = new StringContent(json,Encoding.UTF8, Application.Json);
+
+    //    var response = await _client.PatchAsync($"{productEndpoint}/{request.ProductId}", content);
+    //    var jsonStr = await response.Content.ReadAsStringAsync();
+    //    var model = JsonConvert.DeserializeObject<ProductUpdateResponseModel>(jsonStr);
+
+
+    //    return model ?? new ProductUpdateResponseModel();
+    //}
+    public async Task<ProductUpdateResponseModel> UpdateProduct(ProductUpdateRequestModel request)
+    {
+        var json = JsonConvert.SerializeObject(request);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _client.PatchAsync($"{productEndpoint}/{request.ProductId}", content);
+
+        var jsonStr = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return new ProductUpdateResponseModel   
+            {
+                Message = $"Error: {response.StatusCode}, Response: {jsonStr}"
+            };
+        }
+
+        var model = JsonConvert.DeserializeObject<ProductUpdateResponseModel>(jsonStr);
+        return model ?? new ProductUpdateResponseModel { Message = "Empty response from server." };
+    }
+    public async Task<ProductDeleteResponseModel> DeleteProduct(ProductDeleteRequestModel request)
+    {
+        var response = await _client.DeleteAsync($"{productEndpoint}/{request.ProductId}"); 
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync(); 
+            var model = JsonConvert.DeserializeObject<ProductDeleteResponseModel>(json)!;
+            return model;
+        }
+        return new ProductDeleteResponseModel();
+    }
+
+    public class ProductDeleteResponseModel
+    {
+        public bool IsSuccess {  get; set; }    
+        public string Message { get; set; }
+    }
+    public class ProductDeleteRequestModel
+    {
+        public string ProductId { get; set; }   
+    }
+    public class ProductUpdateRequestModel
+    {
+        public string ProductId { get; set; }   
+        public string? ProductCode { get; set; }
+        public string? ProductName { get; set; }
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+    }
 
     public class ProductCreateRequestModel
     {
@@ -56,6 +117,11 @@ public class ProductService
         public decimal Price { get; set; }
         public int Quantity { get; set; }
     }
+    public class ProductUpdateResponseModel
+    {
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; }
+    }
     public class ProductCreateResponseModel
     {
         public bool IsSuccess { get; set; } 
@@ -63,9 +129,9 @@ public class ProductService
     }
     public class ProductModel
     {
-        public string ProductId { get; set; }
-        public string ProductCode { get; set; }
-        public string ProductName { get; set; }
+        public string? ProductId { get; set; }
+        public string? ProductCode { get; set; }
+        public string? ProductName { get; set; }
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public bool DeleteFlag { get; set; }
