@@ -44,7 +44,7 @@
             txtQuantity = new TextBox();
             label5 = new Label();
             btnSave = new Button();
-            btnCancel = new Button();
+            btnSale = new Button();
             btnUpdate = new Button();
             btnDelete = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -194,14 +194,15 @@
             btnSave.UseVisualStyleBackColor = true;
             btnSave.Click += btnSave_Click;
             // 
-            // btnCancel
+            // btnSale
             // 
-            btnCancel.Location = new Point(422, 159);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(94, 29);
-            btnCancel.TabIndex = 12;
-            btnCancel.Text = "Cancel";
-            btnCancel.UseVisualStyleBackColor = true;
+            btnSale.Location = new Point(422, 159);
+            btnSale.Name = "btnSale";
+            btnSale.Size = new Size(94, 29);
+            btnSale.TabIndex = 12;
+            btnSale.Text = "Sale";
+            btnSale.UseVisualStyleBackColor = true;
+            btnSale.Click += btnSale_Click;
             // 
             // btnUpdate
             // 
@@ -230,7 +231,7 @@
             ClientSize = new Size(800, 450);
             Controls.Add(btnDelete);
             Controls.Add(btnUpdate);
-            Controls.Add(btnCancel);
+            Controls.Add(btnSale);
             Controls.Add(btnSave);
             Controls.Add(txtQuantity);
             Controls.Add(label5);
@@ -261,7 +262,7 @@
         private TextBox txtQuantity;
         private Label label5;
         private Button btnSave;
-        private Button btnCancel;
+        private Button btnSale;
         private DataGridViewButtonColumn colEdit;
         private DataGridViewTextBoxColumn colProductId;
         private DataGridViewTextBoxColumn colProductCode;

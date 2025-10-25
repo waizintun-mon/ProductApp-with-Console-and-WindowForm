@@ -144,7 +144,7 @@ namespace ProductWindFormApp
                 };
 
                 DialogResult confirm = MessageBox.Show("Are you sure want to Delete?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (confirm == DialogResult.No) return; 
+                if (confirm == DialogResult.No) return;
 
                 var result = await productRestService.DeleteProduct(deleteRequest);
                 MessageBox.Show(result.Message, "Delete Product", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -154,6 +154,63 @@ namespace ProductWindFormApp
             {
                 MessageBox.Show($"Error Deleting product: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-           }
+        }
+
+     
+            private async void btnSale_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    MessageBox.Show("Please select a product to sell.");
+                    return;
+                }
+
+                // Confirm sale quantity
+                string input = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Enter quantity to sell:", "Sell Product", "1");
+
+                if (string.IsNullOrEmpty(input)) return; // cancelled
+
+                if (!int.TryParse(input, out int saleQty) || saleQty <= 0)
+                {
+                    MessageBox.Show("Please enter a valid quantity.", "Invalid Quantity", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Get current stock
+                int currentQty = int.Parse(txtQuantity.Text.Trim());
+
+                if (saleQty > currentQty)
+                {
+                    MessageBox.Show("Insufficient stock.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                int newQty = currentQty - saleQty;
+
+                // Update product with reduced quantity
+                var updateRequest = new ProductUpdateRequestModel
+                {
+                    ProductId = id,
+                    ProductCode = txtProductCode.Text.Trim(),
+                    ProductName = txtProductName.Text.Trim(),
+                    Price = decimal.Parse(txtPrice.Text),
+                    Quantity = newQty
+                };
+
+                var result = await productService.UpdateProduct(updateRequest);
+
+                MessageBox.Show($"Sale successful! Remaining quantity: {newQty}", "Sale", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                await BindDataAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error processing sale: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
     }
 }
+

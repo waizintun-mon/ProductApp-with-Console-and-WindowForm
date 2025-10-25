@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management + Sell</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+</head>
+
+<body class="p-4">
+    <h2 class="mb-4">🛒 Product Management & Sales</h2>
+
+    <!-- Product Form -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Product Name</label>
+            <input type="text" class="form-control" id="txtProductName">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Price</label>
+            <input type="number" class="form-control" id="txtPrice" step="0.01">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="txtQuantity">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="button" class="btn btn-success w-100" onclick="save()">💾 Save Product</button>
+        </div>
+    </div>
+
+    <!-- Sell Product Section -->
+    <div class="card p-3 mb-4">
+        <h5>💰 Sell Product</h5>
+        <div class="row">
+            <div class="col-md-5">
+                <label class="form-label">Select Product</label>
+                <select class="form-select" id="sellProductSelect">
+                    <option value="">-- Choose Product --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Quantity to Sell</label>
+                <input type="number" class="form-control" id="sellQuantity">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary w-100" onclick="sellProduct()">🛒 Sell</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Action</th>
+                <th>#</th>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Price ($)</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody id="tbData"></tbody>
+    </table>
+
+    <script>
+        loadData();
+        var editId = null;
+
+        function getData() {
+            let jsonStr = localStorage.getItem('products');
+            let lst = JSON.parse(jsonStr);
+            if (!lst) lst = [];
+            return lst;
+        }
+
+        function loadData() {
+            const tbody = document.getElementById('tbData');
+            tbody.innerHTML = '';
+
+            let lst = getData();
+            let select = document.getElementById('sellProductSelect');
+            select.innerHTML = `<option value="">-- Choose Product --</option>`;
+
+            for (let i = 0; i < lst.length; i++) {
+                const item = lst[i];
+                const tr = `
+                    <tr>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="edit('${item.ProductId}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteData('${item.ProductId}')">Delete</button>
+                        </td>
+                        <th scope="row">${i + 1}</th>
+                        <td>${item.ProductId}</td>
+                        <td>${item.ProductName}</td>
+                        <td>${item.Price.toFixed(2)}</td>
+                        <td>${item.Quantity}</td>
+                    </tr>`;
+                tbody.innerHTML += tr;
+
+                // Add to select list for selling
+                select.innerHTML += `<option value="${item.ProductId}">${item.ProductName}</option>`;
+            }
+        }
+
+        function save() {
+            if (editId == null) {
+                saveData();
+            } else {
+                updateData();
+            }
+            clearForm();
+            loadData();
+        }
+
+        function saveData() {
+            const name = document.getElementById('txtProductName').value;
+            const price = parseFloat(document.getElementById('txtPrice').value);
+            const qty = parseInt(document.getElementById('txtQuantity').value);
+
+            if (!name || isNaN(price) || isNaN(qty)) {
+                alert("⚠️ Please enter all product details!");
+                return;
+            }
+
+            const product = {
+                ProductId: crypto.randomUUID(),
+                ProductName: name,
+                Price: price,
+                Quantity: qty
+            };
+
+            let lst = getData();
+            lst.push(product);
+            localStorage.setItem('products', JSON.stringify(lst));
+        }
+
+        function edit(id) {
+            let lst = getData();
+            let product = lst.find(p => p.ProductId === id);
+            if (!product) return;
+
+            document.getElementById('txtProductName').value = product.ProductName;
+            document.getElementById('txtPrice').value = product.Price;
+            document.getElementById('txtQuantity').value = product.Quantity;
+            editId = id;
+        }
+
+        function updateData() {
+            const name = document.getElementById('txtProductName').value;
+            const price = parseFloat(document.getElementById('txtPrice').value);
+            const qty = parseInt(document.getElementById('txtQuantity').value);
+
+            let lst = getData();
+            let index = lst.findIndex(p => p.ProductId === editId);
+            if (index === -1) return;
+
+            lst[index].ProductName = name;
+            lst[index].Price = price;
+            lst[index].Quantity = qty;
+
+            localStorage.setItem('products', JSON.stringify(lst));
+            editId = null;
+        }
+
+        function deleteData(id) {
+            if (!confirm("❌ Are you sure you want to delete this product?")) return;
+            let lst = getData();
+            lst = lst.filter(p => p.ProductId !== id);
+            localStorage.setItem('products', JSON.stringify(lst));
+            loadData();
+        }
+
+        function clearForm() {
+            document.getElementById('txtProductName').value = '';
+            document.getElementById('txtPrice').value = '';
+            document.getElementById('txtQuantity').value = '';
+            editId = null;
+        }
+
+        // 🛒 SELL PRODUCT FUNCTION
+        function sellProduct() {
+            const productId = document.getElementById('sellProductSelect').value;
+            const qtyToSell = parseInt(document.getElementById('sellQuantity').value);
+
+            if (!productId || isNaN(qtyToSell) || qtyToSell <= 0) {
+                alert("⚠️ Please select a product and enter a valid quantity!");
+                return;
+            }
+
+            let lst = getData();
+            let index = lst.findIndex(p => p.ProductId === productId);
+            if (index === -1) {
+                alert("Product not found!");
+                return;
+            }
+
+            let product = lst[index];
+
+            if (product.Quantity < qtyToSell) {
+                alert(`⚠️ Not enough stock! Only ${product.Quantity} available.`);
+                return;
+            }
+
+            // Reduce quantity
+            product.Quantity -= qtyToSell;
+            localStorage.setItem('products', JSON.stringify(lst));
+
+            alert(`✅ Sold ${qtyToSell} ${product.ProductName}(s) for $${(product.Price * qtyToSell).toFixed(2)}!`);
+            document.getElementById('sellQuantity').value = '';
+            document.getElementById('sellProductSelect').value = '';
+            loadData();
+        }
+    </script>
+</body>
+</html>
